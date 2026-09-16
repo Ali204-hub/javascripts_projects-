@@ -23,4 +23,9 @@ A practical JavaScript project built to strengthen **DOM manipulation, CRUD oper
 ### 👨‍💻 Author
 
 **Syed Ali Imam Shah** — Aspiring Full-Stack Developer
+## Development Progress
 
+### September 16, 2026
+- Reviewed expense calculation logic
+- Tested expense adding/deleting functionality
+- Improved project documentation
