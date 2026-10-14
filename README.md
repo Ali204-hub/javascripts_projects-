@@ -1,31 +1,53 @@
-# javascripts_projects-
-# 💰 Expense Tracker Pro
+# Expense Tracker Pro
 
-A simple and responsive expense tracker built with **HTML, CSS, and Vanilla JavaScript**.
+A responsive browser-based expense tracker built with **HTML, CSS, and Vanilla JavaScript**. This project demonstrates practical front-end development, DOM manipulation, transaction handling, and browser storage.
 
-### ✨ Features
+## Features
 
-* Add income and expenses
-* Delete transactions
-* Search and filter transactions
-* Automatic balance calculation
-* LocalStorage data persistence
-* Responsive design
+- Add income and expense transactions
+- Delete transactions
+- Search and filter transactions
+- Automatically calculate the balance
+- Persist transaction data with `localStorage`
+- Responsive layout for different screen sizes
 
-### 🛠️ Technologies
+## Tech Stack
 
-HTML5 • CSS3 • JavaScript ES6+ • DOM • LocalStorage
+- **HTML5** — application structure
+- **CSS3** — styling and responsive layout
+- **JavaScript (ES6+)** — application logic and DOM interactions
+- **Web Storage API** — local data persistence
 
-### 🎯 Purpose
+## Run Locally
 
-A practical JavaScript project built to strengthen **DOM manipulation, CRUD operations, events, arrays, objects, and browser storage**.
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/Ali204-hub/javascripts_projects-.git
+   ```
+2. Open the project folder.
+3. Open `index.html` in your browser.
 
-### 👨‍💻 Author
+No package installation or build step is required.
 
-**Syed Ali Imam Shah** — Aspiring Full-Stack Developer
-## Development Progress
+## What I Practiced
 
-### September 16, 2026
-- Reviewed expense calculation logic
-- Tested expense adding/deleting functionality
-- Improved project documentation
+- DOM selection and event handling
+- Working with arrays and objects
+- CRUD-style transaction operations
+- Search and filtering logic
+- Calculating totals and balances
+- Persisting data in browser storage
+
+## Limitations
+
+Transactions are stored in the current browser using `localStorage`. They are not synchronized across devices and are not stored in a backend database.
+
+## Author
+
+**Syed Ali Imam Shah**  
+Computer Science Student | Aspiring Software Developer
+
+[GitHub Profile](https://github.com/Ali204-hub)
+
+---
+*Built as a hands-on project to strengthen practical JavaScript skills.*
