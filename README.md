@@ -6,8 +6,9 @@ A responsive browser-based expense tracker built with **HTML, CSS, and Vanilla J
 
 - Add income and expense transactions
 - Delete transactions
-- Search and filter transactions
-- Automatically calculate the balance
+- Search transactions by **description or category**
+- Filter transactions by type: all, income, or expenses
+- Automatically calculate income, expenses, and balance
 - Persist transaction data with `localStorage`
 - Responsive layout for different screen sizes
 
@@ -34,9 +35,11 @@ No package installation or build step is required.
 - DOM selection and event handling
 - Working with arrays and objects
 - CRUD-style transaction operations
-- Search and filtering logic
+- Search across multiple transaction fields
+- Filtering data based on user selection
 - Calculating totals and balances
 - Persisting data in browser storage
+- Validating user input
 
 ## Limitations
 
