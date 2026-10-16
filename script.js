@@ -96,8 +96,12 @@ function displayTransactions() {
                 currentFilter === "all" ||
                 transaction.type === currentFilter;
 
+            // Search by description or category.
             const matchesSearch =
                 transaction.title
+                    .toLowerCase()
+                    .includes(searchText) ||
+                transaction.category
                     .toLowerCase()
                     .includes(searchText);
 
@@ -211,7 +215,7 @@ form.addEventListener(
             categoryInput.value;
 
 
-        if (!title || amount <= 0) {
+        if (!title || !Number.isFinite(amount) || amount <= 0) {
 
             alert(
                 "Please enter valid transaction information."
