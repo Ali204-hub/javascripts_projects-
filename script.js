@@ -256,7 +256,7 @@ form.addEventListener(
 );
 
 
-// Delete transaction
+// Delete transaction with confirmation
 
 transactionList.addEventListener(
     "click",
@@ -272,6 +272,23 @@ transactionList.addEventListener(
 
         const id =
             Number(event.target.dataset.id);
+
+        const transactionToDelete =
+            transactions.find(
+                transaction => transaction.id === id
+            );
+
+        if (!transactionToDelete) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete "${transactionToDelete.title}"?`
+        );
+
+        if (!confirmed) {
+            return;
+        }
 
 
         transactions =
