@@ -27,6 +27,9 @@ const transactionList =
 const searchInput =
     document.getElementById("search");
 
+const exportCsvButton =
+    document.getElementById("exportCsvBtn");
+
 const emptyMessage =
     document.getElementById("emptyMessage");
 
@@ -347,6 +350,55 @@ document
 
     });
 
+
+// Export all transactions to a CSV file.
+
+function escapeCsvCell(value) {
+
+    let text = String(value ?? "");
+
+    // Reduce the risk of spreadsheet formula injection.
+    if (/^[=+@-]/.test(text)) {
+        text = "'" + text;
+    }
+
+    return `"${text.replace(/"/g, '""')}"`;
+}
+
+exportCsvButton.addEventListener("click", function () {
+
+    if (transactions.length === 0) {
+        alert("There are no transactions to export yet.");
+        return;
+    }
+
+    const headers = ["Description", "Amount (PKR)", "Type", "Category"];
+    const rows = transactions.map(transaction => [
+        transaction.title,
+        transaction.amount.toFixed(2),
+        transaction.type,
+        transaction.category
+    ]);
+
+    const csvContent = [headers, ...rows]
+        .map(row => row.map(escapeCsvCell).join(","))
+        .join("\r\n");
+
+    const blob = new Blob(["\uFEFF", csvContent], {
+        type: "text/csv;charset=utf-8;"
+    });
+
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = "expense-transactions.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    URL.revokeObjectURL(downloadUrl);
+});
 
 // Initial application load
 
