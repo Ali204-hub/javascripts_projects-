@@ -79,11 +79,20 @@ const emptyMessage =
 // Save data
 
 function saveTransactions() {
-
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(transactions)
-    );
+    try {
+        localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(transactions)
+        );
+        return true;
+    } catch (error) {
+        console.error("Could not save transactions.", error);
+        alert(
+            "Your changes could not be saved in this browser. " +
+            "Check browser storage availability and try again."
+        );
+        return false;
+    }
 }
 
 
@@ -287,8 +296,11 @@ form.addEventListener(
 
         transactions.push(transaction);
 
-
-        saveTransactions();
+        if (!saveTransactions()) {
+            // Roll back the in-memory change when persistence fails.
+            transactions.pop();
+            return;
+        }
 
         calculateSummary();
 
@@ -336,14 +348,19 @@ transactionList.addEventListener(
         }
 
 
+        const previousTransactions = transactions;
+
         transactions =
             transactions.filter(
                 transaction =>
                     transaction.id !== id
             );
 
-
-        saveTransactions();
+        if (!saveTransactions()) {
+            // Keep the deleted item visible if storage could not be updated.
+            transactions = previousTransactions;
+            return;
+        }
 
         calculateSummary();
 
