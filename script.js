@@ -1,5 +1,47 @@
-let transactions =
-    JSON.parse(localStorage.getItem("transactions")) || [];
+const STORAGE_KEY = "transactions";
+
+// Ignore malformed or outdated data rather than breaking the entire app on load.
+function loadTransactions() {
+    let storedValue;
+
+    try {
+        storedValue = localStorage.getItem(STORAGE_KEY);
+    } catch (error) {
+        console.warn("Could not read saved transactions.", error);
+        return [];
+    }
+
+    if (!storedValue) {
+        return [];
+    }
+
+    try {
+        const parsed = JSON.parse(storedValue);
+
+        if (!Array.isArray(parsed)) {
+            console.warn("Saved transactions were not a list. Starting fresh.");
+            return [];
+        }
+
+        return parsed.filter(isValidTransaction);
+    } catch (error) {
+        console.warn("Saved transactions were invalid JSON. Starting fresh.", error);
+        return [];
+    }
+}
+
+function isValidTransaction(transaction) {
+    return transaction !== null
+        && typeof transaction === "object"
+        && Number.isFinite(transaction.id)
+        && typeof transaction.title === "string"
+        && Number.isFinite(transaction.amount)
+        && transaction.amount > 0
+        && ["income", "expense"].includes(transaction.type)
+        && typeof transaction.category === "string";
+}
+
+let transactions = loadTransactions();
 
 let currentFilter = "all";
 
@@ -39,7 +81,7 @@ const emptyMessage =
 function saveTransactions() {
 
     localStorage.setItem(
-        "transactions",
+        STORAGE_KEY,
         JSON.stringify(transactions)
     );
 }
