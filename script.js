@@ -1,5 +1,14 @@
 const STORAGE_KEY = "transactions";
 
+const amountFormatter = new Intl.NumberFormat("en-PK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+});
+
+function formatRupees(amount) {
+    return `Rs. ${amountFormatter.format(amount)}`;
+}
+
 // Ignore malformed or outdated data rather than breaking the entire app on load.
 function loadTransactions() {
     let storedValue;
@@ -121,15 +130,15 @@ function calculateSummary() {
 
     document.getElementById("income")
         .textContent =
-        `Rs. ${income.toFixed(2)}`;
+        formatRupees(income);
 
     document.getElementById("expense")
         .textContent =
-        `Rs. ${expense.toFixed(2)}`;
+        formatRupees(expense);
 
     document.getElementById("balance")
         .textContent =
-        `Rs. ${balance.toFixed(2)}`;
+        formatRupees(balance);
 }
 
 
@@ -211,7 +220,7 @@ function displayTransactions() {
             <span class="transaction-amount">
 
                 ${sign}
-                Rs. ${transaction.amount.toFixed(2)}
+                ${formatRupees(transaction.amount)}
 
             </span>
 
