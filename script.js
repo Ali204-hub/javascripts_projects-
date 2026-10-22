@@ -440,8 +440,17 @@ exportCsvButton.addEventListener("click", function () {
         return;
     }
 
-    const headers = ["Description", "Amount (PKR)", "Type", "Category"];
+    // Each transaction ID is created with Date.now(), so it also records
+    // the creation time. Export the exact timestamp in a stable UTC format.
+    const headers = [
+        "Created At (UTC)",
+        "Description",
+        "Amount (PKR)",
+        "Type",
+        "Category"
+    ];
     const rows = transactions.map(transaction => [
+        new Date(transaction.id).toISOString(),
         transaction.title,
         transaction.amount.toFixed(2),
         transaction.type,
