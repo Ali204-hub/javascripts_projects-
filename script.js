@@ -170,7 +170,9 @@ function displayTransactions() {
 
             return matchesFilter && matchesSearch;
 
-        });
+        })
+        // Show the newest transactions first (IDs are created with Date.now()).
+        .sort((a, b) => b.id - a.id);
 
 
     if (filteredTransactions.length === 0) {
