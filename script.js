@@ -388,6 +388,28 @@ searchInput.addEventListener(
     displayTransactions
 );
 
+// Keyboard shortcuts: press "/" to focus search and Escape to clear it.
+document.addEventListener("keydown", function (event) {
+    const target = event.target;
+    const isTyping = target instanceof HTMLElement
+        && (target.matches("input, textarea, select") || target.isContentEditable);
+
+    if (event.key === "/" && !isTyping) {
+        event.preventDefault();
+        searchInput.focus();
+        return;
+    }
+
+    if (
+        event.key === "Escape"
+        && document.activeElement === searchInput
+        && searchInput.value
+    ) {
+        searchInput.value = "";
+        displayTransactions();
+    }
+});
+
 
 // Filter
 
