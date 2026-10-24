@@ -151,6 +151,10 @@ function displayTransactions() {
     const searchText =
         searchInput.value.toLowerCase().trim();
 
+    // Let users search amounts with or without thousands separators/currency text.
+    const normalizedSearch = searchText
+        .replace(/rs\.?/g, "")
+        .replace(/[\s,]/g, "");
 
     const filteredTransactions =
         transactions.filter(transaction => {
@@ -159,14 +163,19 @@ function displayTransactions() {
                 currentFilter === "all" ||
                 transaction.type === currentFilter;
 
-            // Search by description or category.
+            // Search by description, category, type, or amount.
             const matchesSearch =
                 transaction.title
                     .toLowerCase()
                     .includes(searchText) ||
                 transaction.category
                     .toLowerCase()
-                    .includes(searchText);
+                    .includes(searchText) ||
+                transaction.type
+                    .toLowerCase()
+                    .includes(searchText) ||
+                String(transaction.amount)
+                    .includes(normalizedSearch);
 
             return matchesFilter && matchesSearch;
 
