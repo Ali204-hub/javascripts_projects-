@@ -203,6 +203,14 @@ function displayTransactions() {
                 ? "+"
                 : "-";
 
+        const createdAt = new Date(transaction.id).toLocaleString("en-PK", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+
 
         li.innerHTML = `
 
@@ -214,6 +222,9 @@ function displayTransactions() {
 
                 <small>
                     ${escapeHTML(transaction.category)}
+                </small>
+                <small class="transaction-date">
+                    Added ${escapeHTML(createdAt)}
                 </small>
 
             </div>
