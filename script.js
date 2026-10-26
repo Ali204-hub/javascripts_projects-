@@ -51,6 +51,7 @@ function isValidTransaction(transaction) {
 }
 
 let transactions = loadTransactions();
+let editingTransactionId = null;
 
 let currentFilter = "all";
 
@@ -83,6 +84,40 @@ const exportCsvButton =
 
 const emptyMessage =
     document.getElementById("emptyMessage");
+
+const formHeading = form.closest(".card").querySelector("h2");
+const submitButton = form.querySelector('button[type="submit"]');
+
+// Create the cancel control dynamically so no HTML change is needed.
+const cancelEditButton = document.createElement("button");
+cancelEditButton.type = "button";
+cancelEditButton.className = "filter-btn";
+cancelEditButton.textContent = "Cancel edit";
+cancelEditButton.hidden = true;
+cancelEditButton.style.gridColumn = "1 / -1";
+form.appendChild(cancelEditButton);
+
+function resetTransactionForm() {
+    editingTransactionId = null;
+    form.reset();
+    formHeading.textContent = "Add Transaction";
+    submitButton.textContent = "Add Transaction";
+    cancelEditButton.hidden = true;
+}
+
+function startEditingTransaction(transaction) {
+    editingTransactionId = transaction.id;
+    titleInput.value = transaction.title;
+    amountInput.value = transaction.amount;
+    typeInput.value = transaction.type;
+    categoryInput.value = transaction.category;
+    formHeading.textContent = "Edit Transaction";
+    submitButton.textContent = "Save Changes";
+    cancelEditButton.hidden = false;
+    form.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+cancelEditButton.addEventListener("click", resetTransactionForm);
 
 
 // Save data
@@ -248,8 +283,20 @@ function displayTransactions() {
 
 
             <button
+                type="button"
+                class="filter-btn edit-btn"
+                data-id="${transaction.id}"
+                aria-label="Edit ${escapeHTML(transaction.title)}">
+
+                Edit
+
+            </button>
+
+            <button
+                type="button"
                 class="delete-btn"
-                data-id="${transaction.id}">
+                data-id="${transaction.id}"
+                aria-label="Delete ${escapeHTML(transaction.title)}">
 
                 Delete
 
@@ -325,11 +372,30 @@ form.addEventListener(
         };
 
 
-        transactions.push(transaction);
+        // Preserve the original ID while editing so its creation date stays intact.
+        const previousTransactions = transactions;
+
+        if (editingTransactionId === null) {
+            transactions = [...transactions, transaction];
+        } else {
+            const exists = transactions.some(
+                item => item.id === editingTransactionId
+            );
+
+            if (!exists) {
+                alert("This transaction no longer exists. Please try again.");
+                resetTransactionForm();
+                return;
+            }
+
+            transactions = transactions.map(item =>
+                item.id === editingTransactionId ? transaction : item
+            );
+        }
 
         if (!saveTransactions()) {
-            // Roll back the in-memory change when persistence fails.
-            transactions.pop();
+            // Restore the previous list if browser storage rejects the change.
+            transactions = previousTransactions;
             return;
         }
 
@@ -338,7 +404,7 @@ form.addEventListener(
         displayTransactions();
 
 
-        form.reset();
+        resetTransactionForm();
 
     }
 );
@@ -349,24 +415,26 @@ form.addEventListener(
 transactionList.addEventListener(
     "click",
     function (event) {
-
-        if (
-            !event.target.classList
-                .contains("delete-btn")
-        ) {
+        const actionButton = event.target.closest("button[data-id]");
+        if (!actionButton) {
             return;
         }
 
-
-        const id =
-            Number(event.target.dataset.id);
-
-        const transactionToDelete =
-            transactions.find(
-                transaction => transaction.id === id
-            );
+        const id = Number(actionButton.dataset.id);
+        const transactionToDelete = transactions.find(
+            transaction => transaction.id === id
+        );
 
         if (!transactionToDelete) {
+            return;
+        }
+
+        if (actionButton.classList.contains("edit-btn")) {
+            startEditingTransaction(transactionToDelete);
+            return;
+        }
+
+        if (!actionButton.classList.contains("delete-btn")) {
             return;
         }
 
