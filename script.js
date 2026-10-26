@@ -52,6 +52,7 @@ function isValidTransaction(transaction) {
 
 let transactions = loadTransactions();
 let editingTransactionId = null;
+let lastDeletedTransaction = null;
 
 let currentFilter = "all";
 
@@ -84,6 +85,58 @@ const exportCsvButton =
 
 const emptyMessage =
     document.getElementById("emptyMessage");
+
+// Accessible undo notice, inserted above the transaction list.
+const undoNotice = document.createElement("div");
+undoNotice.setAttribute("role", "status");
+undoNotice.setAttribute("aria-live", "polite");
+undoNotice.style.display = "none";
+undoNotice.style.alignItems = "center";
+undoNotice.style.justifyContent = "space-between";
+undoNotice.style.flexWrap = "wrap";
+undoNotice.style.gap = "12px";
+undoNotice.style.margin = "12px 0";
+undoNotice.style.padding = "12px 14px";
+undoNotice.style.border = "1px solid #bfdbfe";
+undoNotice.style.borderRadius = "8px";
+undoNotice.style.background = "#eff6ff";
+undoNotice.style.color = "#1e3a8a";
+
+const undoMessage = document.createElement("span");
+const undoButton = document.createElement("button");
+undoButton.type = "button";
+undoButton.className = "filter-btn";
+undoButton.textContent = "Undo delete";
+undoNotice.append(undoMessage, undoButton);
+transactionList.parentElement.insertBefore(undoNotice, transactionList);
+
+undoButton.addEventListener("click", function () {
+    if (!lastDeletedTransaction) {
+        return;
+    }
+
+    const previousTransactions = transactions;
+    transactions = [...transactions, lastDeletedTransaction];
+
+    if (!saveTransactions()) {
+        transactions = previousTransactions;
+        return;
+    }
+
+    lastDeletedTransaction = null;
+    undoNotice.style.display = "none";
+    undoMessage.textContent = "";
+
+    // Show the restored transaction even if a filter or search was active.
+    currentFilter = "all";
+    searchInput.value = "";
+    document.querySelectorAll(".filter-btn[data-filter]").forEach(button => {
+        button.classList.toggle("active", button.dataset.filter === "all");
+    });
+
+    calculateSummary();
+    displayTransactions();
+});
 
 const formHeading = form.closest(".card").querySelector("h2");
 const submitButton = form.querySelector('button[type="submit"]');
@@ -286,7 +339,7 @@ function displayTransactions() {
                 type="button"
                 class="filter-btn edit-btn"
                 data-id="${transaction.id}"
-                aria-label="Edit ${escapeHTML(transaction.title)}">
+                aria-label="Edit transaction">
 
                 Edit
 
@@ -296,7 +349,7 @@ function displayTransactions() {
                 type="button"
                 class="delete-btn"
                 data-id="${transaction.id}"
-                aria-label="Delete ${escapeHTML(transaction.title)}">
+                aria-label="Delete transaction">
 
                 Delete
 
@@ -359,7 +412,9 @@ form.addEventListener(
 
         const transaction = {
 
-            id: Date.now(),
+            id: editingTransactionId === null
+                ? Date.now()
+                : editingTransactionId,
 
             title: title,
 
@@ -461,6 +516,10 @@ transactionList.addEventListener(
             return;
         }
 
+        lastDeletedTransaction = transactionToDelete;
+        undoMessage.textContent = `Deleted "${transactionToDelete.title}".`;
+        undoNotice.style.display = "flex";
+
         calculateSummary();
 
         displayTransactions();
@@ -502,7 +561,7 @@ document.addEventListener("keydown", function (event) {
 // Filter
 
 document
-    .querySelectorAll(".filter-btn")
+    .querySelectorAll(".filters .filter-btn[data-filter]")
     .forEach(button => {
 
         button.addEventListener(
@@ -510,7 +569,7 @@ document
             function () {
 
                 document
-                    .querySelectorAll(".filter-btn")
+                    .querySelectorAll(".filters .filter-btn[data-filter]")
                     .forEach(btn =>
                         btn.classList.remove("active")
                     );
