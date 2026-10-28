@@ -89,6 +89,15 @@ const exportCsvButton =
 const emptyMessage =
     document.getElementById("emptyMessage");
 
+const monthlyExpenseTotal =
+    document.getElementById("monthlyExpenseTotal");
+const monthlyExpenseCount =
+    document.getElementById("monthlyExpenseCount");
+const topExpenseCategory =
+    document.getElementById("topExpenseCategory");
+const monthlyInsightMessage =
+    document.getElementById("monthlyInsightMessage");
+
 // Accessible undo notice, inserted above the transaction list.
 const undoNotice = document.createElement("div");
 undoNotice.setAttribute("role", "status");
@@ -138,6 +147,8 @@ undoButton.addEventListener("click", function () {
     });
 
     calculateSummary();
+
+    renderMonthlyInsights();
     displayTransactions();
 });
 
@@ -230,6 +241,38 @@ function calculateSummary() {
     document.getElementById("balance")
         .textContent =
         formatRupees(balance);
+}
+
+
+// Summarize expense activity for the current calendar month.
+function renderMonthlyInsights() {
+    const now = new Date();
+    const monthExpenses = transactions.filter(transaction => {
+        if (transaction.type !== "expense") {
+            return false;
+        }
+
+        const createdAt = new Date(transaction.id);
+        return createdAt.getFullYear() === now.getFullYear()
+            && createdAt.getMonth() === now.getMonth();
+    });
+
+    const total = monthExpenses.reduce((sum, transaction) => sum + transaction.amount, 0);
+    const categoryTotals = monthExpenses.reduce((totals, transaction) => {
+        totals[transaction.category] = (totals[transaction.category] || 0) + transaction.amount;
+        return totals;
+    }, {});
+    const topCategory = Object.entries(categoryTotals)
+        .sort((a, b) => b[1] - a[1])[0];
+
+    monthlyExpenseTotal.textContent = formatRupees(total);
+    monthlyExpenseCount.textContent = String(monthExpenses.length);
+    topExpenseCategory.textContent = topCategory
+        ? `${topCategory[0]} — ${formatRupees(topCategory[1])}`
+        : "No expenses yet";
+    monthlyInsightMessage.textContent = monthExpenses.length
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month.`
+        : "Add an expense to start tracking this month's spending.";
 }
 
 
@@ -471,6 +514,8 @@ form.addEventListener(
 
         calculateSummary();
 
+        renderMonthlyInsights();
+
         displayTransactions();
 
 
@@ -536,6 +581,8 @@ transactionList.addEventListener(
         undoNotice.style.display = "flex";
 
         calculateSummary();
+
+        renderMonthlyInsights();
 
         displayTransactions();
 
@@ -668,5 +715,7 @@ exportCsvButton.addEventListener("click", function () {
 // Initial application load
 
 calculateSummary();
+
+renderMonthlyInsights();
 
 displayTransactions();

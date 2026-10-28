@@ -97,6 +97,48 @@ body {
     margin-bottom: 20px;
 }
 
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.insight-item {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+}
+
+.insight-label {
+    margin-bottom: 8px;
+    color: #666;
+    font-size: 14px;
+}
+
+.insight-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.insight-message {
+    margin-top: 14px;
+    color: #666;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sort-label {
+        margin-left: 0;
+    }
+}
+
 
 /* Form */
 

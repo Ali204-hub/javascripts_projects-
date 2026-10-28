@@ -4,10 +4,11 @@ A responsive, browser-based expense tracker built with **HTML5, CSS3, and vanill
 
 ## Features
 
-- Add income and expense transactions
+- Add, edit, and undo deletion of income and expense transactions
 - View total income, expenses, and current balance
 - Search transactions by description or category
-- Filter transactions by type: all, income, or expenses
+- Filter transactions by type and sort by date or amount
+- View this month's total expenses, transaction count, and top spending category
 - Confirm before deleting a transaction
 - Save transaction data in browser `localStorage`
 - Export transactions to a CSV file for spreadsheet analysis
