@@ -80,6 +80,9 @@ const transactionList =
 const searchInput =
     document.getElementById("search");
 
+const sortInput =
+    document.getElementById("sortTransactions");
+
 const exportCsvButton =
     document.getElementById("exportCsvBtn");
 
@@ -268,8 +271,20 @@ function displayTransactions() {
             return matchesFilter && matchesSearch;
 
         })
-        // Show the newest transactions first (IDs are created with Date.now()).
-        .sort((a, b) => b.id - a.id);
+        .sort((a, b) => {
+            // IDs are created with Date.now(), so they also represent creation time.
+            switch (sortInput.value) {
+                case "oldest":
+                    return a.id - b.id;
+                case "amount-high":
+                    return (b.amount - a.amount) || (b.id - a.id);
+                case "amount-low":
+                    return (a.amount - b.amount) || (b.id - a.id);
+                case "newest":
+                default:
+                    return b.id - a.id;
+            }
+        });
 
 
     if (filteredTransactions.length === 0) {
@@ -534,6 +549,8 @@ searchInput.addEventListener(
     "input",
     displayTransactions
 );
+
+sortInput.addEventListener("change", displayTransactions);
 
 // Keyboard shortcuts: press "/" to focus search and Escape to clear it.
 document.addEventListener("keydown", function (event) {
