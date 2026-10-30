@@ -395,6 +395,16 @@ function displayTransactions() {
 
             <button
                 type="button"
+                class="filter-btn duplicate-btn"
+                data-id="${transaction.id}"
+                aria-label="Duplicate transaction">
+
+                Duplicate
+
+            </button>
+
+            <button
+                type="button"
                 class="filter-btn edit-btn"
                 data-id="${transaction.id}"
                 aria-label="Edit transaction">
@@ -541,6 +551,20 @@ transactionList.addEventListener(
         );
 
         if (!transactionToDelete) {
+            return;
+        }
+
+        if (actionButton.classList.contains("duplicate-btn")) {
+            // Prefill a new transaction without changing the original record.
+            editingTransactionId = null;
+            titleInput.value = `Copy of ${transactionToDelete.title}`;
+            amountInput.value = transactionToDelete.amount;
+            typeInput.value = transactionToDelete.type;
+            categoryInput.value = transactionToDelete.category;
+            formHeading.textContent = "Add Transaction";
+            submitButton.textContent = "Add Transaction";
+            cancelEditButton.hidden = true;
+            form.scrollIntoView({ behavior: "smooth", block: "start" });
             return;
         }
 
