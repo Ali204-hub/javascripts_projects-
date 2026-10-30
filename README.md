@@ -9,6 +9,7 @@ A responsive, browser-based expense tracker built with **HTML5, CSS3, and vanill
 - Search transactions by description or category
 - Filter transactions by type and sort by date or amount
 - View this month's total expenses, transaction count, and top spending category
+- Set a monthly spending budget and track usage with a progress indicator
 - Confirm before deleting a transaction
 - Save transaction data in browser `localStorage`
 - Export transactions to a CSV file for spreadsheet analysis

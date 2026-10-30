@@ -1,4 +1,20 @@
 const STORAGE_KEY = "transactions";
+const MONTHLY_BUDGET_KEY = "monthlyExpenseBudget";
+
+function loadMonthlyBudget() {
+    try {
+        const storedBudget = localStorage.getItem(MONTHLY_BUDGET_KEY);
+        if (storedBudget === null) {
+            return null;
+        }
+
+        const budget = Number(storedBudget);
+        return Number.isFinite(budget) && budget > 0 ? budget : null;
+    } catch (error) {
+        console.warn("Could not read the monthly budget.", error);
+        return null;
+    }
+}
 
 const amountFormatter = new Intl.NumberFormat("en-PK", {
     minimumFractionDigits: 2,
@@ -51,6 +67,7 @@ function isValidTransaction(transaction) {
 }
 
 let transactions = loadTransactions();
+let monthlyBudget = loadMonthlyBudget();
 let editingTransactionId = null;
 let lastDeletedTransaction = null;
 
@@ -97,6 +114,17 @@ const topExpenseCategory =
     document.getElementById("topExpenseCategory");
 const monthlyInsightMessage =
     document.getElementById("monthlyInsightMessage");
+
+const monthlyBudgetInput =
+    document.getElementById("monthlyBudgetInput");
+const saveMonthlyBudgetButton =
+    document.getElementById("saveMonthlyBudgetBtn");
+const monthlyBudgetProgress =
+    document.getElementById("monthlyBudgetProgress");
+const monthlyBudgetStatus =
+    document.getElementById("monthlyBudgetStatus");
+
+monthlyBudgetInput.value = monthlyBudget === null ? "" : String(monthlyBudget);
 
 // Accessible undo notice, inserted above the transaction list.
 const undoNotice = document.createElement("div");
@@ -273,7 +301,47 @@ function renderMonthlyInsights() {
     monthlyInsightMessage.textContent = monthExpenses.length
         ? `You recorded ${monthExpenses.length} expense transaction(s) this month.`
         : "Add an expense to start tracking this month's spending.";
+
+    if (monthlyBudget === null) {
+        monthlyBudgetProgress.value = 0;
+        monthlyBudgetProgress.classList.remove("over-budget");
+        monthlyBudgetStatus.textContent = "Set a monthly budget to see how much you have left to spend.";
+        return;
+    }
+
+    const percentageUsed = (total / monthlyBudget) * 100;
+    const remaining = monthlyBudget - total;
+
+    monthlyBudgetProgress.value = Math.min(percentageUsed, 100);
+    monthlyBudgetProgress.classList.toggle("over-budget", remaining < 0);
+
+    monthlyBudgetStatus.textContent = remaining >= 0
+        ? `${percentageUsed.toFixed(1)}% used — ${formatRupees(remaining)} remaining.`
+        : `Budget exceeded by ${formatRupees(Math.abs(remaining))} (${percentageUsed.toFixed(1)}% used).`;
 }
+
+
+// Save the user's monthly spending limit separately from transaction data.
+saveMonthlyBudgetButton.addEventListener("click", function () {
+    const rawBudget = monthlyBudgetInput.value.trim();
+    const budget = Number(rawBudget);
+
+    if (!rawBudget || !Number.isFinite(budget) || budget <= 0) {
+        monthlyBudgetStatus.textContent = "Enter a budget greater than zero.";
+        monthlyBudgetInput.focus();
+        return;
+    }
+
+    try {
+        localStorage.setItem(MONTHLY_BUDGET_KEY, String(budget));
+        monthlyBudget = budget;
+        renderMonthlyInsights();
+        monthlyBudgetStatus.textContent = `Budget saved. ${monthlyBudgetStatus.textContent}`;
+    } catch (error) {
+        console.error("Could not save the monthly budget.", error);
+        monthlyBudgetStatus.textContent = "The budget could not be saved in this browser.";
+    }
+});
 
 
 // Display transactions
