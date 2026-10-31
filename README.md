@@ -2,6 +2,12 @@
 
 A responsive, browser-based expense tracker built with **HTML5, CSS3, and vanilla JavaScript**. The project demonstrates front-end fundamentals, transaction management, browser storage, filtering, and CSV export.
 
+## Dashboard Preview
+
+![Expense Tracker Pro dashboard preview](screenshots/expense-tracker-pro.svg)
+
+*Desktop preview populated with sample transactions; the displayed figures are illustrative.*
+
 ## Features
 
 - Add, edit, and undo deletion of income and expense transactions
