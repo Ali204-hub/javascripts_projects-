@@ -12,7 +12,8 @@ A responsive, browser-based expense tracker built with **HTML5, CSS3, and vanill
 
 - Add, edit, and undo deletion of income and expense transactions
 - View total income, expenses, and current balance
-- Search transactions by description or category
+- Search transactions by description, category, type, or amount
+- Filter transaction history by an inclusive start and end date
 - Filter transactions by type and sort by date or amount
 - View this month's total expenses, transaction count, and top spending category
 - Set a monthly spending budget and track usage with a progress indicator
@@ -48,7 +49,8 @@ No package installation or build step is required.
 
 - [ ] Add an income transaction and confirm the summary updates.
 - [ ] Add an expense and confirm the balance recalculates.
-- [ ] Search by a transaction description and category.
+- [ ] Search by a transaction description, category, type, and amount.
+- [ ] Filter transactions with a start date, an end date, and an invalid date range.
 - [ ] Switch between All, Income, and Expenses filters.
 - [ ] Cancel a delete confirmation and confirm the transaction remains.
 - [ ] Export transactions and open the downloaded CSV in a spreadsheet app.

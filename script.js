@@ -100,6 +100,11 @@ const searchInput =
 const sortInput =
     document.getElementById("sortTransactions");
 
+const fromDateInput = document.getElementById("fromDate");
+const toDateInput = document.getElementById("toDate");
+const clearDateRangeButton = document.getElementById("clearDateRangeBtn");
+const dateRangeStatus = document.getElementById("dateRangeStatus");
+
 const exportCsvButton =
     document.getElementById("exportCsvBtn");
 
@@ -358,6 +363,21 @@ function displayTransactions() {
         .replace(/rs\.?/g, "")
         .replace(/[\s,]/g, "");
 
+    const startDate = fromDateInput.value
+        ? new Date(`${fromDateInput.value}T00:00:00`)
+        : null;
+    const endDate = toDateInput.value
+        ? new Date(`${toDateInput.value}T23:59:59.999`)
+        : null;
+    const hasDateFilter = Boolean(startDate || endDate);
+
+    if (startDate && endDate && startDate > endDate) {
+        dateRangeStatus.textContent = "Start date must be on or before the end date.";
+        emptyMessage.textContent = "Please correct the selected date range.";
+        emptyMessage.style.display = "block";
+        return;
+    }
+
     const filteredTransactions =
         transactions.filter(transaction => {
 
@@ -379,7 +399,12 @@ function displayTransactions() {
                 String(transaction.amount)
                     .includes(normalizedSearch);
 
-            return matchesFilter && matchesSearch;
+            const createdAt = new Date(transaction.id);
+            const matchesDateRange =
+                (!startDate || createdAt >= startDate)
+                && (!endDate || createdAt <= endDate);
+
+            return matchesFilter && matchesSearch && matchesDateRange;
 
         })
         .sort((a, b) => {
@@ -398,15 +423,19 @@ function displayTransactions() {
         });
 
 
+    dateRangeStatus.textContent = hasDateFilter
+        ? `Showing ${filteredTransactions.length} transaction(s) in the selected date range.`
+        : "Filter transactions within a date range.";
+
     if (filteredTransactions.length === 0) {
-
+        emptyMessage.textContent = hasDateFilter
+            ? "No transactions found in this date range."
+            : "No transactions found.";
         emptyMessage.style.display = "block";
-
         return;
-
     }
 
-
+    emptyMessage.textContent = "No transactions found.";
     emptyMessage.style.display = "none";
 
 
@@ -690,6 +719,14 @@ searchInput.addEventListener(
 );
 
 sortInput.addEventListener("change", displayTransactions);
+fromDateInput.addEventListener("change", displayTransactions);
+toDateInput.addEventListener("change", displayTransactions);
+
+clearDateRangeButton.addEventListener("click", function () {
+    fromDateInput.value = "";
+    toDateInput.value = "";
+    displayTransactions();
+});
 
 // Keyboard shortcuts: press "/" to focus search and Escape to clear it.
 document.addEventListener("keydown", function (event) {

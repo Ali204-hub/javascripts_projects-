@@ -259,6 +259,23 @@
 
             </div>
 
+            <div class="date-range-controls" aria-label="Filter transactions by date">
+                <div class="date-filter-field">
+                    <label for="fromDate">From date</label>
+                    <input type="date" id="fromDate">
+                </div>
+                <div class="date-filter-field">
+                    <label for="toDate">To date</label>
+                    <input type="date" id="toDate">
+                </div>
+                <button type="button" class="filter-btn" id="clearDateRangeBtn">
+                    Clear dates
+                </button>
+                <p id="dateRangeStatus" class="date-range-status" role="status" aria-live="polite">
+                    Filter transactions within a date range.
+                </p>
+            </div>
+
 
             <ul id="transactionList">
                 <!-- Transactions appear here -->
