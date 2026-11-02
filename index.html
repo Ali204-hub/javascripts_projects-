@@ -276,6 +276,24 @@
                 </p>
             </div>
 
+            <div class="backup-controls" aria-label="Backup and restore your data">
+                <button type="button" class="filter-btn" id="exportBackupBtn">
+                    Download JSON Backup
+                </button>
+                <label class="filter-btn backup-import-label" for="importBackupInput">
+                    Restore from JSON
+                </label>
+                <input
+                    type="file"
+                    id="importBackupInput"
+                    class="backup-file-input"
+                    accept=".json,application/json"
+                >
+                <p id="backupStatus" class="backup-status" role="status" aria-live="polite">
+                    Back up your transactions and monthly budget. Restoring replaces current saved data.
+                </p>
+            </div>
+
 
             <ul id="transactionList">
                 <!-- Transactions appear here -->

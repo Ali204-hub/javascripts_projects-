@@ -525,3 +525,43 @@ footer {
     }
 
 }
+
+/* JSON backup and restore controls */
+
+.backup-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: -4px 0 20px;
+}
+
+.backup-import-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+}
+
+.backup-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.backup-import-label:focus-within,
+.backup-file-input:focus + .backup-import-label {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+}
+
+.backup-status {
+    flex-basis: 100%;
+    color: #666;
+    font-size: 13px;
+}

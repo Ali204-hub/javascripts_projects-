@@ -105,6 +105,10 @@ const toDateInput = document.getElementById("toDate");
 const clearDateRangeButton = document.getElementById("clearDateRangeBtn");
 const dateRangeStatus = document.getElementById("dateRangeStatus");
 
+const exportBackupButton = document.getElementById("exportBackupBtn");
+const importBackupInput = document.getElementById("importBackupInput");
+const backupStatus = document.getElementById("backupStatus");
+
 const exportCsvButton =
     document.getElementById("exportCsvBtn");
 
@@ -781,6 +785,161 @@ document
         );
 
     });
+
+
+// Export transactions and the monthly budget as a versioned JSON backup.
+function downloadBackup() {
+    const backup = {
+        format: "expense-tracker-pro-backup",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        monthlyBudget,
+        transactions
+    };
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+        type: "application/json"
+    });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStamp = new Date().toISOString().slice(0, 10);
+
+    link.href = downloadUrl;
+    link.download = `expense-tracker-backup-${dateStamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadUrl);
+
+    backupStatus.textContent = `Backup downloaded with ${transactions.length} transaction(s).`;
+}
+
+function validateBackup(backup) {
+    if (
+        !backup
+        || typeof backup !== "object"
+        || backup.format !== "expense-tracker-pro-backup"
+        || backup.version !== 1
+    ) {
+        throw new Error("This file is not a supported Expense Tracker Pro backup.");
+    }
+
+    if (!Array.isArray(backup.transactions)) {
+        throw new Error("The backup does not contain a valid transactions list.");
+    }
+
+    const validTransactions = backup.transactions.every(transaction =>
+        isValidTransaction(transaction)
+        && transaction.title.trim().length > 0
+        && transaction.category.trim().length > 0
+    );
+
+    if (!validTransactions) {
+        throw new Error("The backup contains an invalid transaction record.");
+    }
+
+    const transactionIds = backup.transactions.map(transaction => transaction.id);
+    if (new Set(transactionIds).size !== transactionIds.length) {
+        throw new Error("The backup contains duplicate transaction IDs.");
+    }
+
+    const validBudget = backup.monthlyBudget === null
+        || (
+            typeof backup.monthlyBudget === "number"
+            && Number.isFinite(backup.monthlyBudget)
+            && backup.monthlyBudget > 0
+        );
+
+    if (!validBudget) {
+        throw new Error("The backup contains an invalid monthly budget.");
+    }
+
+    return {
+        transactions: backup.transactions,
+        monthlyBudget: backup.monthlyBudget
+    };
+}
+
+// Restore both localStorage values together. Roll back the first write if
+// the second write fails, so an import does not leave a half-restored account.
+function persistImportedBackup(imported) {
+    const previousTransactions = localStorage.getItem(STORAGE_KEY);
+    const previousBudget = localStorage.getItem(MONTHLY_BUDGET_KEY);
+
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(imported.transactions));
+
+        if (imported.monthlyBudget === null) {
+            localStorage.removeItem(MONTHLY_BUDGET_KEY);
+        } else {
+            localStorage.setItem(MONTHLY_BUDGET_KEY, String(imported.monthlyBudget));
+        }
+    } catch (error) {
+        try {
+            if (previousTransactions === null) {
+                localStorage.removeItem(STORAGE_KEY);
+            } else {
+                localStorage.setItem(STORAGE_KEY, previousTransactions);
+            }
+
+            if (previousBudget === null) {
+                localStorage.removeItem(MONTHLY_BUDGET_KEY);
+            } else {
+                localStorage.setItem(MONTHLY_BUDGET_KEY, previousBudget);
+            }
+        } catch (rollbackError) {
+            console.error("Could not fully roll back a failed backup restore.", rollbackError);
+        }
+
+        throw error;
+    }
+}
+
+exportBackupButton.addEventListener("click", downloadBackup);
+
+importBackupInput.addEventListener("change", async function () {
+    const file = importBackupInput.files[0];
+    if (!file) {
+        return;
+    }
+
+    try {
+        if (file.size > 2 * 1024 * 1024) {
+            throw new Error("Backup file is too large. Choose a file smaller than 2 MB.");
+        }
+
+        const backup = JSON.parse(await file.text());
+        const imported = validateBackup(backup);
+        const confirmed = window.confirm(
+            `Restore ${imported.transactions.length} transaction(s) and the saved budget? ` +
+            "This will replace the data currently saved in this browser."
+        );
+
+        if (!confirmed) {
+            backupStatus.textContent = "Restore cancelled. Your saved data was not changed.";
+            return;
+        }
+
+        persistImportedBackup(imported);
+        transactions = imported.transactions;
+        monthlyBudget = imported.monthlyBudget;
+        monthlyBudgetInput.value = monthlyBudget === null ? "" : String(monthlyBudget);
+        lastDeletedTransaction = null;
+        undoNotice.style.display = "none";
+        resetTransactionForm();
+
+        calculateSummary();
+        renderMonthlyInsights();
+        displayTransactions();
+
+        backupStatus.textContent = `Restore complete: ${transactions.length} transaction(s) loaded.`;
+    } catch (error) {
+        console.error("Could not restore the selected backup.", error);
+        backupStatus.textContent = `Restore failed: ${error.message}`;
+    } finally {
+        importBackupInput.value = "";
+    }
+});
 
 
 // Export all transactions to a CSV file.
