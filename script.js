@@ -63,7 +63,11 @@ function isValidTransaction(transaction) {
         && Number.isFinite(transaction.amount)
         && transaction.amount > 0
         && ["income", "expense"].includes(transaction.type)
-        && typeof transaction.category === "string";
+        && typeof transaction.category === "string"
+        && (
+            typeof transaction.notes === "undefined"
+            || typeof transaction.notes === "string"
+        );
 }
 
 let transactions = loadTransactions();
@@ -90,6 +94,9 @@ const typeInput =
 
 const categoryInput =
     document.getElementById("category");
+
+const notesInput =
+    document.getElementById("transactionNotes");
 
 const transactionList =
     document.getElementById("transactionList");
@@ -215,6 +222,7 @@ function startEditingTransaction(transaction) {
     amountInput.value = transaction.amount;
     typeInput.value = transaction.type;
     categoryInput.value = transaction.category;
+    notesInput.value = transaction.notes || "";
     formHeading.textContent = "Edit Transaction";
     submitButton.textContent = "Save Changes";
     cancelEditButton.hidden = false;
@@ -466,6 +474,9 @@ function displayTransactions() {
             hour: "2-digit",
             minute: "2-digit"
         });
+        const notesMarkup = transaction.notes
+            ? `<small class="transaction-notes">Note: ${escapeHTML(transaction.notes)}</small>`
+            : "";
 
 
         li.innerHTML = `
@@ -479,6 +490,7 @@ function displayTransactions() {
                 <small>
                     ${escapeHTML(transaction.category)}
                 </small>
+                ${notesMarkup}
                 <small class="transaction-date">
                     Added ${escapeHTML(createdAt)}
                 </small>
@@ -591,7 +603,9 @@ form.addEventListener(
 
             type: type,
 
-            category: category
+            category: category,
+
+            notes: notesInput.value.trim()
 
         };
 
@@ -662,6 +676,7 @@ transactionList.addEventListener(
             amountInput.value = transactionToDelete.amount;
             typeInput.value = transactionToDelete.type;
             categoryInput.value = transactionToDelete.category;
+            notesInput.value = transactionToDelete.notes || "";
             formHeading.textContent = "Add Transaction";
             submitButton.textContent = "Add Transaction";
             cancelEditButton.hidden = true;

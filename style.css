@@ -565,3 +565,41 @@ footer {
     color: #666;
     font-size: 13px;
 }
+
+
+/* Optional transaction notes */
+
+.form-group-full {
+    grid-column: 1 / -1;
+}
+
+.form-group textarea {
+    width: 100%;
+    min-height: 68px;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.45;
+    resize: vertical;
+}
+
+.form-group textarea:focus {
+    border-color: #555;
+    outline: 2px solid #dbeafe;
+    outline-offset: 1px;
+}
+
+.field-hint {
+    margin-top: 6px;
+    color: #777;
+    font-size: 12px;
+}
+
+.transaction-notes {
+    display: block;
+    margin-top: 5px;
+    color: #555 !important;
+    overflow-wrap: anywhere;
+}

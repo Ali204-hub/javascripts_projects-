@@ -10,7 +10,8 @@ A responsive, browser-based expense tracker built with **HTML5, CSS3, and vanill
 
 ## Features
 
-- Add, edit, and undo deletion of income and expense transactions
+- Add, edit, duplicate, and undo deletion of income and expense transactions
+- Attach optional notes to transactions for extra context
 - View total income, expenses, and current balance
 - Search transactions by description, category, type, or amount
 - Filter transaction history by an inclusive start and end date
@@ -48,7 +49,8 @@ No package installation or build step is required.
 
 ## Quick Test Checklist
 
-- [ ] Add an income transaction and confirm the summary updates.
+- [ ] Add an income transaction with notes and confirm the notes appear in its history row.
+- [ ] Edit and duplicate a transaction with notes, then confirm the notes are preserved.
 - [ ] Add an expense and confirm the balance recalculates.
 - [ ] Search by a transaction description, category, type, and amount.
 - [ ] Filter transactions with a start date, an end date, and an invalid date range.
@@ -67,6 +69,7 @@ No package installation or build step is required.
 - Calculating totals from transaction data
 - Persisting data with `localStorage`
 - Escaping displayed text and formatting CSV cells
+- Saving and displaying optional transaction notes safely
 - Creating browser downloads with the Blob API
 - Validating versioned JSON backups and restoring browser storage safely
 - Writing project documentation and manual test cases
