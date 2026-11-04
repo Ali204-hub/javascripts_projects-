@@ -130,6 +130,8 @@ const topExpenseCategory =
     document.getElementById("topExpenseCategory");
 const monthlyInsightMessage =
     document.getElementById("monthlyInsightMessage");
+const categoryBreakdown =
+    document.getElementById("categoryBreakdown");
 
 const monthlyBudgetInput =
     document.getElementById("monthlyBudgetInput");
@@ -307,8 +309,39 @@ function renderMonthlyInsights() {
         totals[transaction.category] = (totals[transaction.category] || 0) + transaction.amount;
         return totals;
     }, {});
-    const topCategory = Object.entries(categoryTotals)
-        .sort((a, b) => b[1] - a[1])[0];
+    const sortedCategories = Object.entries(categoryTotals)
+        .sort((a, b) => b[1] - a[1]);
+    const topCategory = sortedCategories[0];
+
+    if (sortedCategories.length === 0) {
+        categoryBreakdown.innerHTML =
+            '<p class="category-breakdown-empty">No expense categories to display yet.</p>';
+    } else {
+        categoryBreakdown.innerHTML = sortedCategories.map(([category, amount]) => {
+            const share = total > 0 ? (amount / total) * 100 : 0;
+            const safeShare = Math.max(0, Math.min(100, share));
+
+            return `
+                <div class="category-breakdown-item">
+                    <div class="category-breakdown-heading">
+                        <span>${escapeHTML(category)}</span>
+                        <strong>${formatRupees(amount)}</strong>
+                    </div>
+                    <div
+                        class="category-breakdown-track"
+                        role="progressbar"
+                        aria-label="${escapeHTML(category)} share of monthly expenses"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="${safeShare.toFixed(1)}"
+                    >
+                        <span style="width: ${safeShare.toFixed(2)}%"></span>
+                    </div>
+                    <small>${share.toFixed(1)}% of monthly expenses</small>
+                </div>
+            `;
+        }).join("");
+    }
 
     monthlyExpenseTotal.textContent = formatRupees(total);
     monthlyExpenseCount.textContent = String(monthExpenses.length);

@@ -17,6 +17,7 @@ A responsive, browser-based expense tracker built with **HTML5, CSS3, and vanill
 - Filter transaction history by an inclusive start and end date
 - Filter transactions by type and sort by date or amount
 - View this month's total expenses, transaction count, and top spending category
+- Compare monthly spending across categories with accessible progress bars
 - Set a monthly spending budget and track usage with a progress indicator
 - Confirm before deleting a transaction
 - Save transaction data in browser `localStorage`
@@ -51,6 +52,7 @@ No package installation or build step is required.
 
 - [ ] Add an income transaction with notes and confirm the notes appear in its history row.
 - [ ] Edit and duplicate a transaction with notes, then confirm the notes are preserved.
+- [ ] Add expenses in multiple categories and confirm the monthly category breakdown updates.
 - [ ] Add an expense and confirm the balance recalculates.
 - [ ] Search by a transaction description, category, type, and amount.
 - [ ] Filter transactions with a start date, an end date, and an invalid date range.
@@ -67,6 +69,7 @@ No package installation or build step is required.
 - Arrays, objects, and array filtering
 - Form validation and CRUD-style operations
 - Calculating totals from transaction data
+- Grouping monthly expenses by category and visualizing each category's share
 - Persisting data with `localStorage`
 - Escaping displayed text and formatting CSV cells
 - Saving and displaying optional transaction notes safely
