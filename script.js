@@ -55,6 +55,36 @@ function loadTransactions() {
     }
 }
 
+function formatLocalDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function isValidDateInput(value) {
+    if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) {
+        return false;
+    }
+
+    const [year, month, day] = value.split("-").map(Number);
+    const parsed = new Date(year, month - 1, day);
+
+    return parsed.getFullYear() === year
+        && parsed.getMonth() === month - 1
+        && parsed.getDate() === day;
+}
+
+// Older saved transactions do not have a separate transaction date.
+// Fall back to their original creation timestamp to keep old data working.
+function getTransactionDate(transaction) {
+    if (isValidDateInput(transaction.transactionDate)) {
+        return transaction.transactionDate;
+    }
+
+    return formatLocalDate(new Date(transaction.id));
+}
+
 function isValidTransaction(transaction) {
     return transaction !== null
         && typeof transaction === "object"
@@ -67,6 +97,10 @@ function isValidTransaction(transaction) {
         && (
             typeof transaction.notes === "undefined"
             || typeof transaction.notes === "string"
+        )
+        && (
+            typeof transaction.transactionDate === "undefined"
+            || isValidDateInput(transaction.transactionDate)
         );
 }
 
@@ -94,6 +128,9 @@ const typeInput =
 
 const categoryInput =
     document.getElementById("category");
+
+const transactionDateInput =
+    document.getElementById("transactionDate");
 
 const notesInput =
     document.getElementById("transactionNotes");
@@ -143,6 +180,7 @@ const monthlyBudgetStatus =
     document.getElementById("monthlyBudgetStatus");
 
 monthlyBudgetInput.value = monthlyBudget === null ? "" : String(monthlyBudget);
+transactionDateInput.value = formatLocalDate(new Date());
 
 // Accessible undo notice, inserted above the transaction list.
 const undoNotice = document.createElement("div");
@@ -213,6 +251,7 @@ form.appendChild(cancelEditButton);
 function resetTransactionForm() {
     editingTransactionId = null;
     form.reset();
+    transactionDateInput.value = formatLocalDate(new Date());
     formHeading.textContent = "Add Transaction";
     submitButton.textContent = "Add Transaction";
     cancelEditButton.hidden = true;
@@ -224,6 +263,7 @@ function startEditingTransaction(transaction) {
     amountInput.value = transaction.amount;
     typeInput.value = transaction.type;
     categoryInput.value = transaction.category;
+    transactionDateInput.value = getTransactionDate(transaction);
     notesInput.value = transaction.notes || "";
     formHeading.textContent = "Edit Transaction";
     submitButton.textContent = "Save Changes";
@@ -293,16 +333,11 @@ function calculateSummary() {
 
 // Summarize expense activity for the current calendar month.
 function renderMonthlyInsights() {
-    const now = new Date();
-    const monthExpenses = transactions.filter(transaction => {
-        if (transaction.type !== "expense") {
-            return false;
-        }
-
-        const createdAt = new Date(transaction.id);
-        return createdAt.getFullYear() === now.getFullYear()
-            && createdAt.getMonth() === now.getMonth();
-    });
+    const currentMonth = formatLocalDate(new Date()).slice(0, 7);
+    const monthExpenses = transactions.filter(transaction =>
+        transaction.type === "expense"
+        && getTransactionDate(transaction).slice(0, 7) === currentMonth
+    );
 
     const total = monthExpenses.reduce((sum, transaction) => sum + transaction.amount, 0);
     const categoryTotals = monthExpenses.reduce((totals, transaction) => {
@@ -408,12 +443,8 @@ function displayTransactions() {
         .replace(/rs\.?/g, "")
         .replace(/[\s,]/g, "");
 
-    const startDate = fromDateInput.value
-        ? new Date(`${fromDateInput.value}T00:00:00`)
-        : null;
-    const endDate = toDateInput.value
-        ? new Date(`${toDateInput.value}T23:59:59.999`)
-        : null;
+    const startDate = fromDateInput.value || null;
+    const endDate = toDateInput.value || null;
     const hasDateFilter = Boolean(startDate || endDate);
 
     if (startDate && endDate && startDate > endDate) {
@@ -444,26 +475,26 @@ function displayTransactions() {
                 String(transaction.amount)
                     .includes(normalizedSearch);
 
-            const createdAt = new Date(transaction.id);
+            const transactionDate = getTransactionDate(transaction);
             const matchesDateRange =
-                (!startDate || createdAt >= startDate)
-                && (!endDate || createdAt <= endDate);
+                (!startDate || transactionDate >= startDate)
+                && (!endDate || transactionDate <= endDate);
 
             return matchesFilter && matchesSearch && matchesDateRange;
 
         })
         .sort((a, b) => {
-            // IDs are created with Date.now(), so they also represent creation time.
+            const dateDifference = getTransactionDate(a).localeCompare(getTransactionDate(b));
             switch (sortInput.value) {
                 case "oldest":
-                    return a.id - b.id;
+                    return dateDifference || (a.id - b.id);
                 case "amount-high":
-                    return (b.amount - a.amount) || (b.id - a.id);
+                    return (b.amount - a.amount) || dateDifference || (b.id - a.id);
                 case "amount-low":
-                    return (a.amount - b.amount) || (b.id - a.id);
+                    return (a.amount - b.amount) || dateDifference || (b.id - a.id);
                 case "newest":
                 default:
-                    return b.id - a.id;
+                    return -dateDifference || (b.id - a.id);
             }
         });
 
@@ -500,6 +531,13 @@ function displayTransactions() {
                 ? "+"
                 : "-";
 
+        const transactionDateLabel = new Date(
+            `${getTransactionDate(transaction)}T00:00:00`
+        ).toLocaleDateString("en-PK", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
         const createdAt = new Date(transaction.id).toLocaleString("en-PK", {
             day: "2-digit",
             month: "short",
@@ -524,6 +562,9 @@ function displayTransactions() {
                     ${escapeHTML(transaction.category)}
                 </small>
                 ${notesMarkup}
+                <small class="transaction-date">
+                    Transaction date: ${escapeHTML(transactionDateLabel)}
+                </small>
                 <small class="transaction-date">
                     Added ${escapeHTML(createdAt)}
                 </small>
@@ -614,7 +655,12 @@ form.addEventListener(
             categoryInput.value;
 
 
-        if (!title || !Number.isFinite(amount) || amount <= 0) {
+        if (
+            !title
+            || !Number.isFinite(amount)
+            || amount <= 0
+            || !isValidDateInput(transactionDateInput.value)
+        ) {
 
             alert(
                 "Please enter valid transaction information."
@@ -637,6 +683,8 @@ form.addEventListener(
             type: type,
 
             category: category,
+
+            transactionDate: transactionDateInput.value,
 
             notes: notesInput.value.trim()
 
@@ -709,6 +757,7 @@ transactionList.addEventListener(
             amountInput.value = transactionToDelete.amount;
             typeInput.value = transactionToDelete.type;
             categoryInput.value = transactionToDelete.category;
+            transactionDateInput.value = getTransactionDate(transactionToDelete);
             notesInput.value = transactionToDelete.notes || "";
             formHeading.textContent = "Add Transaction";
             submitButton.textContent = "Add Transaction";
@@ -1011,21 +1060,23 @@ exportCsvButton.addEventListener("click", function () {
         return;
     }
 
-    // Each transaction ID is created with Date.now(), so it also records
-    // the creation time. Export the exact timestamp in a stable UTC format.
     const headers = [
+        "Transaction Date",
         "Created At (UTC)",
         "Description",
         "Amount (PKR)",
         "Type",
-        "Category"
+        "Category",
+        "Notes"
     ];
     const rows = transactions.map(transaction => [
+        getTransactionDate(transaction),
         new Date(transaction.id).toISOString(),
         transaction.title,
         transaction.amount.toFixed(2),
         transaction.type,
-        transaction.category
+        transaction.category,
+        transaction.notes || ""
     ]);
 
     const csvContent = [headers, ...rows]
