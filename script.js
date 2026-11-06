@@ -155,6 +155,10 @@ const backupStatus = document.getElementById("backupStatus");
 
 const exportCsvButton =
     document.getElementById("exportCsvBtn");
+const importCsvInput =
+    document.getElementById("importCsvInput");
+const csvImportStatus =
+    document.getElementById("csvImportStatus");
 
 const emptyMessage =
     document.getElementById("emptyMessage");
@@ -1052,6 +1056,218 @@ function escapeCsvCell(value) {
 
     return `"${text.replace(/"/g, '""')}"`;
 }
+
+// Parse quoted CSV cells, including commas, escaped quotes, and line breaks.
+function parseCsv(content) {
+    const rows = [];
+    let row = [];
+    let cell = "";
+    let insideQuotes = false;
+
+    for (let index = 0; index < content.length; index += 1) {
+        const character = content[index];
+
+        if (insideQuotes) {
+            if (character === '"') {
+                if (content[index + 1] === '"') {
+                    cell += '"';
+                    index += 1;
+                } else {
+                    insideQuotes = false;
+                }
+            } else {
+                cell += character;
+            }
+            continue;
+        }
+
+        if (character === '"' && cell.length === 0) {
+            insideQuotes = true;
+        } else if (character === ",") {
+            row.push(cell);
+            cell = "";
+        } else if (character === "\n" || character === "\r") {
+            row.push(cell);
+            if (row.some(value => value.trim() !== "")) {
+                rows.push(row);
+            }
+            row = [];
+            cell = "";
+
+            if (character === "\r" && content[index + 1] === "\n") {
+                index += 1;
+            }
+        } else if (character === '"') {
+            throw new Error("The CSV contains an unexpected quotation mark.");
+        } else {
+            cell += character;
+        }
+    }
+
+    if (insideQuotes) {
+        throw new Error("The CSV contains an unfinished quoted field.");
+    }
+
+    if (cell.length > 0 || row.length > 0) {
+        row.push(cell);
+        if (row.some(value => value.trim() !== "")) {
+            rows.push(row);
+        }
+    }
+
+    return rows;
+}
+
+function csvDateToLocalDate(value) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return "";
+    }
+
+    if (isValidDateInput(trimmed)) {
+        return trimmed;
+    }
+
+    const timestamp = Date.parse(trimmed);
+    if (!Number.isFinite(timestamp)) {
+        throw new Error(`Invalid transaction date: ${trimmed}`);
+    }
+
+    return formatLocalDate(new Date(timestamp));
+}
+
+function parseExpenseCsv(content) {
+    const rows = parseCsv(content.replace(/^\\uFEFF/, ""));
+    if (rows.length < 2) {
+        throw new Error("The CSV has a header but no transaction rows.");
+    }
+
+    const headers = rows[0].map(value => value.trim().toLowerCase());
+    const column = name => headers.indexOf(name.toLowerCase());
+    const descriptionIndex = column("Description");
+    const amountIndex = column("Amount (PKR)");
+    const typeIndex = column("Type");
+    const categoryIndex = column("Category");
+    const transactionDateIndex = column("Transaction Date");
+    const createdAtIndex = column("Created At (UTC)");
+    const notesIndex = column("Notes");
+
+    if ([descriptionIndex, amountIndex, typeIndex, categoryIndex].some(index => index < 0)) {
+        throw new Error("Required columns are Description, Amount (PKR), Type, and Category.");
+    }
+
+    if (transactionDateIndex < 0 && createdAtIndex < 0) {
+        throw new Error("The CSV must include Transaction Date or Created At (UTC).");
+    }
+
+    const imported = [];
+    const usedIds = new Set(transactions.map(transaction => transaction.id));
+    const today = formatLocalDate(new Date());
+
+    rows.slice(1).forEach((values, rowIndex) => {
+        if (values.length !== headers.length) {
+            throw new Error(`Row ${rowIndex + 2} has a different number of columns than the header.`);
+        }
+
+        const title = values[descriptionIndex].trim();
+        const rawAmount = values[amountIndex]
+            .trim()
+            .replace(/rs\\.?\\s*/i, "")
+            .replace(/,/g, "");
+        const amount = Number(rawAmount);
+        const type = values[typeIndex].trim().toLowerCase();
+        const category = values[categoryIndex].trim();
+
+        if (!title || !category || !Number.isFinite(amount) || amount <= 0) {
+            throw new Error(`Row ${rowIndex + 2} has an invalid description, category, or amount.`);
+        }
+
+        if (!["income", "expense"].includes(type)) {
+            throw new Error(`Row ${rowIndex + 2} must use Income or Expense as its type.`);
+        }
+
+        const createdAtValue = createdAtIndex >= 0
+            ? values[createdAtIndex].trim()
+            : "";
+        const transactionDateValue = transactionDateIndex >= 0
+            ? values[transactionDateIndex].trim()
+            : "";
+        const transactionDate = transactionDateValue
+            ? csvDateToLocalDate(transactionDateValue)
+            : createdAtValue
+                ? csvDateToLocalDate(createdAtValue)
+                : today;
+
+        let id = createdAtValue ? Date.parse(createdAtValue) : Date.now() + rowIndex;
+        if (!Number.isFinite(id)) {
+            id = Date.now() + rowIndex;
+        }
+        while (usedIds.has(id)) {
+            id += 1;
+        }
+        usedIds.add(id);
+
+        imported.push({
+            id,
+            title,
+            amount,
+            type,
+            category,
+            transactionDate,
+            notes: notesIndex >= 0 ? values[notesIndex].trim() : ""
+        });
+    });
+
+    if (imported.length === 0) {
+        throw new Error("No valid transaction rows were found in the CSV.");
+    }
+
+    return imported;
+}
+
+importCsvInput.addEventListener("change", async function () {
+    const file = importCsvInput.files[0];
+    if (!file) {
+        return;
+    }
+
+    try {
+        if (file.size > 2 * 1024 * 1024) {
+            throw new Error("CSV file is too large. Choose a file smaller than 2 MB.");
+        }
+
+        const imported = parseExpenseCsv(await file.text());
+        const confirmed = window.confirm(
+            `Import ${imported.length} transaction(s)? They will be added to your existing transactions.`
+        );
+
+        if (!confirmed) {
+            csvImportStatus.textContent = "CSV import cancelled. Your saved data was not changed.";
+            return;
+        }
+
+        const previousTransactions = transactions;
+        transactions = [...transactions, ...imported];
+
+        if (!saveTransactions()) {
+            transactions = previousTransactions;
+            return;
+        }
+
+        calculateSummary();
+        renderMonthlyInsights();
+        displayTransactions();
+
+        csvImportStatus.textContent =
+            `Successfully imported ${imported.length} transaction(s). Existing transactions were kept.`;
+    } catch (error) {
+        console.error("Could not import CSV transactions.", error);
+        csvImportStatus.textContent = `CSV import failed: ${error.message}`;
+    } finally {
+        importCsvInput.value = "";
+    }
+});
+
 
 exportCsvButton.addEventListener("click", function () {
 

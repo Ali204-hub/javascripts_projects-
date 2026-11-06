@@ -23,6 +23,7 @@ A responsive, browser-based expense tracker built with **HTML5, CSS3, and vanill
 - Confirm before deleting a transaction
 - Save transaction data in browser `localStorage`
 - Export transactions to a CSV file for spreadsheet analysis
+- Import Expense Tracker Pro CSV files while preserving existing transactions
 - Download and restore a versioned JSON backup of transactions and monthly budget
 - Responsive layout for desktop and mobile screens
 
@@ -60,7 +61,9 @@ No package installation or build step is required.
 - [ ] Filter transactions with a start date, an end date, and an invalid date range.
 - [ ] Switch between All, Income, and Expenses filters.
 - [ ] Cancel a delete confirmation and confirm the transaction remains.
-- [ ] Export transactions and open the downloaded CSV in a spreadsheet app.
+- [ ] Export transactions, re-import the CSV, and confirm existing data is preserved.
+- [ ] Import an older CSV export and confirm its transaction dates are retained.
+- [ ] Try an invalid CSV and confirm no transactions are added.
 - [ ] Download a JSON backup, then restore it after confirming the replacement prompt.
 - [ ] Try importing invalid JSON and confirm the saved data remains unchanged.
 - [ ] Refresh the page and confirm saved transactions remain.
@@ -77,6 +80,7 @@ No package installation or build step is required.
 - Managing separate transaction dates and creation timestamps
 - Saving and displaying optional transaction notes safely
 - Creating browser downloads with the Blob API
+- Parsing quoted CSV files and validating imported transaction rows
 - Validating versioned JSON backups and restoring browser storage safely
 - Writing project documentation and manual test cases
 
@@ -84,7 +88,7 @@ No package installation or build step is required.
 
 - Data is stored locally in the current browser and is not synced across devices.
 - There is no backend, user authentication, or cloud database.
-- CSV export and JSON backup/restore should be manually tested in the target browser.
+- CSV import/export and JSON backup/restore should be manually tested in the target browser.
 
 ## Author
 

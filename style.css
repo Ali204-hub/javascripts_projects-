@@ -674,3 +674,36 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* CSV import control */
+
+.csv-import-label {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+}
+
+.csv-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.csv-import-label:focus-within,
+.csv-file-input:focus + .csv-import-label {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+}
+
+.csv-import-status {
+    margin: -10px 0 16px;
+    color: #666;
+    font-size: 13px;
+}

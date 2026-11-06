@@ -276,6 +276,15 @@
                     id="exportCsvBtn">
                     Export CSV
                 </button>
+                <label class="filter-btn csv-import-label" for="importCsvInput">
+                    Import CSV
+                </label>
+                <input
+                    type="file"
+                    id="importCsvInput"
+                    class="csv-file-input"
+                    accept=".csv,text/csv"
+                />
 
                 <label class="sort-label" for="sortTransactions">Sort:</label>
                 <select id="sortTransactions" class="sort-select">
@@ -286,6 +295,10 @@
                 </select>
 
             </div>
+
+            <p id="csvImportStatus" class="csv-import-status" role="status" aria-live="polite">
+                Import a CSV exported from Expense Tracker Pro to add transactions.
+            </p>
 
             <div class="date-range-controls" aria-label="Filter transactions by date">
                 <div class="date-filter-field">
