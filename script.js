@@ -63,7 +63,7 @@ function formatLocalDate(date) {
 }
 
 function isValidDateInput(value) {
-    if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
         return false;
     }
 
@@ -1137,7 +1137,7 @@ function csvDateToLocalDate(value) {
 }
 
 function parseExpenseCsv(content) {
-    const rows = parseCsv(content.replace(/^\\uFEFF/, ""));
+    const rows = parseCsv(content.replace(/^\uFEFF/, ""));
     if (rows.length < 2) {
         throw new Error("The CSV has a header but no transaction rows.");
     }
@@ -1172,7 +1172,7 @@ function parseExpenseCsv(content) {
         const title = values[descriptionIndex].trim();
         const rawAmount = values[amountIndex]
             .trim()
-            .replace(/rs\\.?\\s*/i, "")
+            .replace(/rs\.?\s*/i, "")
             .replace(/,/g, "");
         const amount = Number(rawAmount);
         const type = values[typeIndex].trim().toLowerCase();
