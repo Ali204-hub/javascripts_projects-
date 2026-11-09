@@ -110,6 +110,7 @@ let editingTransactionId = null;
 let lastDeletedTransaction = null;
 
 let currentFilter = "all";
+let currentCategoryFilter = "all";
 
 
 // DOM Elements
@@ -143,6 +144,8 @@ const searchInput =
 
 const sortInput =
     document.getElementById("sortTransactions");
+const categoryFilterInput =
+    document.getElementById("categoryFilter");
 
 const fromDateInput = document.getElementById("fromDate");
 const toDateInput = document.getElementById("toDate");
@@ -236,6 +239,7 @@ undoButton.addEventListener("click", function () {
 
     calculateSummary();
 
+    refreshCategoryFilter();
     renderMonthlyInsights();
     displayTransactions();
 });
@@ -433,6 +437,35 @@ saveMonthlyBudgetButton.addEventListener("click", function () {
 });
 
 
+// Keep the category filter options synchronized with saved transactions.
+function refreshCategoryFilter() {
+    const categories = [...new Set(
+        transactions
+            .map(transaction => transaction.category.trim())
+            .filter(Boolean)
+    )].sort((a, b) => a.localeCompare(b));
+
+    const previousValue = currentCategoryFilter;
+    categoryFilterInput.innerHTML = "";
+
+    const allOption = document.createElement("option");
+    allOption.value = "all";
+    allOption.textContent = "All categories";
+    categoryFilterInput.appendChild(allOption);
+
+    categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryFilterInput.appendChild(option);
+    });
+
+    currentCategoryFilter = categories.includes(previousValue)
+        ? previousValue
+        : "all";
+    categoryFilterInput.value = currentCategoryFilter;
+}
+
 // Display transactions
 
 function displayTransactions() {
@@ -466,6 +499,10 @@ function displayTransactions() {
                 transaction.type === currentFilter;
 
             // Search by description, category, type, or amount.
+            const matchesCategory =
+                currentCategoryFilter === "all"
+                || transaction.category === currentCategoryFilter;
+
             const matchesSearch =
                 transaction.title
                     .toLowerCase()
@@ -484,7 +521,7 @@ function displayTransactions() {
                 (!startDate || transactionDate >= startDate)
                 && (!endDate || transactionDate <= endDate);
 
-            return matchesFilter && matchesSearch && matchesDateRange;
+            return matchesFilter && matchesCategory && matchesSearch && matchesDateRange;
 
         })
         .sort((a, b) => {
@@ -724,6 +761,7 @@ form.addEventListener(
 
         calculateSummary();
 
+        refreshCategoryFilter();
         renderMonthlyInsights();
 
         displayTransactions();
@@ -808,6 +846,7 @@ transactionList.addEventListener(
 
         calculateSummary();
 
+        refreshCategoryFilter();
         renderMonthlyInsights();
 
         displayTransactions();
@@ -824,6 +863,10 @@ searchInput.addEventListener(
 );
 
 sortInput.addEventListener("change", displayTransactions);
+categoryFilterInput.addEventListener("change", function () {
+    currentCategoryFilter = categoryFilterInput.value;
+    displayTransactions();
+});
 fromDateInput.addEventListener("change", displayTransactions);
 toDateInput.addEventListener("change", displayTransactions);
 
@@ -1255,6 +1298,7 @@ importCsvInput.addEventListener("change", async function () {
         }
 
         calculateSummary();
+        refreshCategoryFilter();
         renderMonthlyInsights();
         displayTransactions();
 
@@ -1317,6 +1361,7 @@ exportCsvButton.addEventListener("click", function () {
 
 // Initial application load
 
+refreshCategoryFilter();
 calculateSummary();
 
 renderMonthlyInsights();

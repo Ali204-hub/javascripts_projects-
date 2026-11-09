@@ -707,3 +707,9 @@ footer {
     color: #666;
     font-size: 13px;
 }
+
+
+/* Category filter */
+#categoryFilter {
+    min-width: 150px;
+}
