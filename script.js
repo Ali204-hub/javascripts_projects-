@@ -158,6 +158,8 @@ const backupStatus = document.getElementById("backupStatus");
 
 const exportCsvButton =
     document.getElementById("exportCsvBtn");
+const exportCurrentViewCsvButton =
+    document.getElementById("exportCurrentViewCsvBtn");
 const importCsvInput =
     document.getElementById("importCsvInput");
 const csvImportStatus =
@@ -468,6 +470,56 @@ function refreshCategoryFilter() {
 
 // Display transactions
 
+function getCurrentViewTransactions() {
+    const searchText = searchInput.value.toLowerCase().trim();
+    const normalizedSearch = searchText
+        .replace(/rs\.?/g, "")
+        .replace(/[\s,]/g, "");
+
+    const startDate = fromDateInput.value || null;
+    const endDate = toDateInput.value || null;
+
+    return transactions
+        .filter(transaction => {
+            const matchesFilter =
+                currentFilter === "all" ||
+                transaction.type === currentFilter;
+
+            const matchesCategory =
+                currentCategoryFilter === "all" ||
+                transaction.category === currentCategoryFilter;
+
+            const matchesSearch =
+                transaction.title.toLowerCase().includes(searchText) ||
+                transaction.category.toLowerCase().includes(searchText) ||
+                transaction.type.toLowerCase().includes(searchText) ||
+                String(transaction.amount).includes(normalizedSearch);
+
+            const transactionDate = getTransactionDate(transaction);
+            const matchesDateRange =
+                (!startDate || transactionDate >= startDate) &&
+                (!endDate || transactionDate <= endDate);
+
+            return matchesFilter && matchesCategory && matchesSearch && matchesDateRange;
+        })
+        .sort((a, b) => {
+            const dateDifference = getTransactionDate(a).localeCompare(getTransactionDate(b));
+
+            switch (sortInput.value) {
+                case "oldest":
+                    return dateDifference || (a.id - b.id);
+                case "amount-high":
+                    return (b.amount - a.amount) || dateDifference || (b.id - a.id);
+                case "amount-low":
+                    return (a.amount - b.amount) || dateDifference || (b.id - a.id);
+                case "newest":
+                default:
+                    return -dateDifference || (b.id - a.id);
+            }
+        });
+}
+
+
 function displayTransactions() {
 
     transactionList.innerHTML = "";
@@ -491,54 +543,7 @@ function displayTransactions() {
         return;
     }
 
-    const filteredTransactions =
-        transactions.filter(transaction => {
-
-            const matchesFilter =
-                currentFilter === "all" ||
-                transaction.type === currentFilter;
-
-            // Search by description, category, type, or amount.
-            const matchesCategory =
-                currentCategoryFilter === "all"
-                || transaction.category === currentCategoryFilter;
-
-            const matchesSearch =
-                transaction.title
-                    .toLowerCase()
-                    .includes(searchText) ||
-                transaction.category
-                    .toLowerCase()
-                    .includes(searchText) ||
-                transaction.type
-                    .toLowerCase()
-                    .includes(searchText) ||
-                String(transaction.amount)
-                    .includes(normalizedSearch);
-
-            const transactionDate = getTransactionDate(transaction);
-            const matchesDateRange =
-                (!startDate || transactionDate >= startDate)
-                && (!endDate || transactionDate <= endDate);
-
-            return matchesFilter && matchesCategory && matchesSearch && matchesDateRange;
-
-        })
-        .sort((a, b) => {
-            const dateDifference = getTransactionDate(a).localeCompare(getTransactionDate(b));
-            switch (sortInput.value) {
-                case "oldest":
-                    return dateDifference || (a.id - b.id);
-                case "amount-high":
-                    return (b.amount - a.amount) || dateDifference || (b.id - a.id);
-                case "amount-low":
-                    return (a.amount - b.amount) || dateDifference || (b.id - a.id);
-                case "newest":
-                default:
-                    return -dateDifference || (b.id - a.id);
-            }
-        });
-
+    const filteredTransactions = getCurrentViewTransactions();
 
     dateRangeStatus.textContent = hasDateFilter
         ? `Showing ${filteredTransactions.length} transaction(s) in the selected date range.`
@@ -1313,13 +1318,7 @@ importCsvInput.addEventListener("change", async function () {
 });
 
 
-exportCsvButton.addEventListener("click", function () {
-
-    if (transactions.length === 0) {
-        alert("There are no transactions to export yet.");
-        return;
-    }
-
+function downloadTransactionsCsv(rows, filename) {
     const headers = [
         "Transaction Date",
         "Created At (UTC)",
@@ -1329,7 +1328,8 @@ exportCsvButton.addEventListener("click", function () {
         "Category",
         "Notes"
     ];
-    const rows = transactions.map(transaction => [
+
+    const csvRows = rows.map(transaction => [
         getTransactionDate(transaction),
         new Date(transaction.id).toISOString(),
         transaction.title,
@@ -1339,24 +1339,47 @@ exportCsvButton.addEventListener("click", function () {
         transaction.notes || ""
     ]);
 
-    const csvContent = [headers, ...rows]
+    const csvContent = [headers, ...csvRows]
         .map(row => row.map(escapeCsvCell).join(","))
         .join("\r\n");
 
     const blob = new Blob(["\uFEFF", csvContent], {
         type: "text/csv;charset=utf-8;"
     });
-
     const downloadUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
     link.href = downloadUrl;
-    link.download = "expense-transactions.csv";
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     link.remove();
-
     URL.revokeObjectURL(downloadUrl);
+}
+
+
+exportCsvButton.addEventListener("click", function () {
+    if (transactions.length === 0) {
+        alert("There are no transactions to export yet.");
+        return;
+    }
+
+    downloadTransactionsCsv(transactions, "expense-transactions.csv");
+});
+
+
+exportCurrentViewCsvButton.addEventListener("click", function () {
+    const visibleTransactions = getCurrentViewTransactions();
+
+    if (visibleTransactions.length === 0) {
+        alert("There are no transactions in the current view to export.");
+        return;
+    }
+
+    downloadTransactionsCsv(
+        visibleTransactions,
+        "expense-transactions-current-view.csv"
+    );
 });
 
 // Initial application load
