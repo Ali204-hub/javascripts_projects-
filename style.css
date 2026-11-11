@@ -713,3 +713,15 @@ footer {
 #categoryFilter {
     min-width: 150px;
 }
+
+/* Current filtered-view summary */
+.filtered-view-summary {
+    flex-basis: 100%;
+    margin: 2px 0 0;
+    padding: 9px 12px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 13px;
+    font-weight: 600;
+}

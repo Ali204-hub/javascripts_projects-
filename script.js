@@ -151,6 +151,7 @@ const fromDateInput = document.getElementById("fromDate");
 const toDateInput = document.getElementById("toDate");
 const clearDateRangeButton = document.getElementById("clearDateRangeBtn");
 const dateRangeStatus = document.getElementById("dateRangeStatus");
+const filteredViewSummary = document.getElementById("filteredViewSummary");
 
 const exportBackupButton = document.getElementById("exportBackupBtn");
 const importBackupInput = document.getElementById("importBackupInput");
@@ -520,6 +521,20 @@ function getCurrentViewTransactions() {
 }
 
 
+function renderFilteredViewSummary(filteredTransactions) {
+    const income = filteredTransactions
+        .filter(transaction => transaction.type === "income")
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+    const expense = filteredTransactions
+        .filter(transaction => transaction.type === "expense")
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+    const balance = income - expense;
+
+    filteredViewSummary.textContent =
+        filteredTransactions.length + " transaction(s) • Income " + formatRupees(income) +
+        " • Expenses " + formatRupees(expense) + " • Balance " + formatRupees(balance);
+}
+
 function displayTransactions() {
 
     transactionList.innerHTML = "";
@@ -544,6 +559,7 @@ function displayTransactions() {
     }
 
     const filteredTransactions = getCurrentViewTransactions();
+    renderFilteredViewSummary(filteredTransactions);
 
     dateRangeStatus.textContent = hasDateFilter
         ? `Showing ${filteredTransactions.length} transaction(s) in the selected date range.`
@@ -1209,7 +1225,19 @@ function parseExpenseCsv(content) {
     }
 
     const imported = [];
+    const skippedDuplicates = [];
     const usedIds = new Set(transactions.map(transaction => transaction.id));
+
+    const transactionFingerprint = transaction => [
+        getTransactionDate(transaction),
+        transaction.title.trim().toLowerCase(),
+        Number(transaction.amount).toFixed(2),
+        transaction.type,
+        transaction.category.trim().toLowerCase(),
+        (transaction.notes || "").trim().toLowerCase()
+    ].join("|");
+
+    const existingFingerprints = new Set(transactions.map(transactionFingerprint));
     const today = formatLocalDate(new Date());
 
     rows.slice(1).forEach((values, rowIndex) => {
@@ -1255,7 +1283,7 @@ function parseExpenseCsv(content) {
         }
         usedIds.add(id);
 
-        imported.push({
+        const candidate = {
             id,
             title,
             amount,
@@ -1263,7 +1291,16 @@ function parseExpenseCsv(content) {
             category,
             transactionDate,
             notes: notesIndex >= 0 ? values[notesIndex].trim() : ""
-        });
+        };
+
+        const fingerprint = transactionFingerprint(candidate);
+        if (existingFingerprints.has(fingerprint)) {
+            skippedDuplicates.push(rowIndex + 2);
+            return;
+        }
+
+        existingFingerprints.add(fingerprint);
+        imported.push(candidate);
     });
 
     if (imported.length === 0) {
@@ -1307,8 +1344,12 @@ importCsvInput.addEventListener("change", async function () {
         renderMonthlyInsights();
         displayTransactions();
 
+        const skippedMessage = skippedDuplicates.length
+            ? ` Skipped ${skippedDuplicates.length} duplicate row(s).`
+            : "";
+
         csvImportStatus.textContent =
-            `Successfully imported ${imported.length} transaction(s). Existing transactions were kept.`;
+            `Successfully imported ${imported.length} transaction(s). Existing transactions were kept.${skippedMessage}`;
     } catch (error) {
         console.error("Could not import CSV transactions.", error);
         csvImportStatus.textContent = `CSV import failed: ${error.message}`;
