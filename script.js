@@ -513,6 +513,11 @@ function getCurrentViewTransactions() {
                     return (b.amount - a.amount) || dateDifference || (b.id - a.id);
                 case "amount-low":
                     return (a.amount - b.amount) || dateDifference || (b.id - a.id);
+                case "category-az":
+                    return a.category.localeCompare(b.category)
+                        || a.title.localeCompare(b.title)
+                        || dateDifference
+                        || (b.id - a.id);
                 case "newest":
                 default:
                     return -dateDifference || (b.id - a.id);
