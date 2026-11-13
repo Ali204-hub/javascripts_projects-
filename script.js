@@ -494,6 +494,7 @@ function getCurrentViewTransactions() {
                 transaction.title.toLowerCase().includes(searchText) ||
                 transaction.category.toLowerCase().includes(searchText) ||
                 transaction.type.toLowerCase().includes(searchText) ||
+                (transaction.notes || "").toLowerCase().includes(searchText) ||
                 String(transaction.amount).includes(normalizedSearch);
 
             const transactionDate = getTransactionDate(transaction);
