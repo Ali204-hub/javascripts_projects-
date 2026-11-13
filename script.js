@@ -150,6 +150,7 @@ const categoryFilterInput =
 const fromDateInput = document.getElementById("fromDate");
 const toDateInput = document.getElementById("toDate");
 const clearDateRangeButton = document.getElementById("clearDateRangeBtn");
+const clearAllFiltersButton = document.getElementById("clearAllFiltersBtn");
 const dateRangeStatus = document.getElementById("dateRangeStatus");
 const filteredViewSummary = document.getElementById("filteredViewSummary");
 
@@ -897,11 +898,25 @@ categoryFilterInput.addEventListener("change", function () {
 fromDateInput.addEventListener("change", displayTransactions);
 toDateInput.addEventListener("change", displayTransactions);
 
-clearDateRangeButton.addEventListener("click", function () {
+function resetAllFilters() {
+    currentFilter = "all";
+    currentCategoryFilter = "all";
+    searchInput.value = "";
+    sortInput.value = "newest";
+    categoryFilterInput.value = "all";
     fromDateInput.value = "";
     toDateInput.value = "";
+
+    document
+        .querySelectorAll(".filters .filter-btn[data-filter]")
+        .forEach(button => {
+            button.classList.toggle("active", button.dataset.filter === "all");
+        });
+
     displayTransactions();
-});
+}
+
+clearAllFiltersButton.addEventListener("click", resetAllFilters);
 
 // Keyboard shortcuts: press "/" to focus search and Escape to clear it.
 document.addEventListener("keydown", function (event) {
