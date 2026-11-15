@@ -412,9 +412,19 @@ function renderMonthlyInsights() {
     monthlyBudgetProgress.value = Math.min(percentageUsed, 100);
     monthlyBudgetProgress.classList.toggle("over-budget", remaining < 0);
 
-    monthlyBudgetStatus.textContent = remaining >= 0
-        ? `${percentageUsed.toFixed(1)}% used — ${formatRupees(remaining)} remaining.`
-        : `Budget exceeded by ${formatRupees(Math.abs(remaining))} (${percentageUsed.toFixed(1)}% used).`;
+    if (remaining < 0) {
+        monthlyBudgetStatus.textContent =
+            `Budget exceeded by ${formatRupees(Math.abs(remaining))} (${percentageUsed.toFixed(1)}% used).`;
+    } else if (percentageUsed >= 90) {
+        monthlyBudgetStatus.textContent =
+            `Warning: ${percentageUsed.toFixed(1)}% used — only ${formatRupees(remaining)} remaining.`;
+    } else if (percentageUsed >= 80) {
+        monthlyBudgetStatus.textContent =
+            `Almost at budget: ${percentageUsed.toFixed(1)}% used — ${formatRupees(remaining)} remaining.`;
+    } else {
+        monthlyBudgetStatus.textContent =
+            `${percentageUsed.toFixed(1)}% used — ${formatRupees(remaining)} remaining.`;
+    }
 }
 
 
