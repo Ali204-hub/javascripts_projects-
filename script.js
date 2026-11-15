@@ -433,8 +433,21 @@ saveMonthlyBudgetButton.addEventListener("click", function () {
     const rawBudget = monthlyBudgetInput.value.trim();
     const budget = Number(rawBudget);
 
-    if (!rawBudget || !Number.isFinite(budget) || budget <= 0) {
-        monthlyBudgetStatus.textContent = "Enter a budget greater than zero.";
+    if (!rawBudget) {
+        try {
+            localStorage.removeItem(MONTHLY_BUDGET_KEY);
+            monthlyBudget = null;
+            renderMonthlyInsights();
+            monthlyBudgetStatus.textContent = "Monthly budget cleared.";
+        } catch (error) {
+            console.error("Could not clear the monthly budget.", error);
+            monthlyBudgetStatus.textContent = "The budget could not be cleared in this browser.";
+        }
+        return;
+    }
+
+    if (!Number.isFinite(budget) || budget <= 0) {
+        monthlyBudgetStatus.textContent = "Enter a budget greater than zero, or leave it blank to clear it.";
         monthlyBudgetInput.focus();
         return;
     }
