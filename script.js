@@ -392,11 +392,17 @@ function renderMonthlyInsights() {
 
     monthlyExpenseTotal.textContent = formatRupees(total);
     monthlyExpenseCount.textContent = String(monthExpenses.length);
+
+    const averageMonthlyExpense = monthExpenses.length > 0
+        ? total / monthExpenses.length
+        : 0;
+
     topExpenseCategory.textContent = topCategory
         ? `${topCategory[0]} — ${formatRupees(topCategory[1])}`
         : "No expenses yet";
+
     monthlyInsightMessage.textContent = monthExpenses.length
-        ? `You recorded ${monthExpenses.length} expense transaction(s) this month.`
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense.`
         : "Add an expense to start tracking this month's spending.";
 
     if (monthlyBudget === null) {
