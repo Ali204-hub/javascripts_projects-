@@ -401,8 +401,17 @@ function renderMonthlyInsights() {
         ? `${topCategory[0]} — ${formatRupees(topCategory[1])}`
         : "No expenses yet";
 
+    const largestExpense = monthExpenses.reduce(
+        (largest, transaction) =>
+            !largest || transaction.amount > largest.amount ? transaction : largest,
+        null
+    );
+    const largestExpenseLabel = largestExpense
+        ? `Largest: ${largestExpense.title} — ${formatRupees(largestExpense.amount)}`
+        : "Largest: No expenses yet";
+
     monthlyInsightMessage.textContent = monthExpenses.length
-        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense.`
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}.`
         : "Add an expense to start tracking this month's spending.";
 
     if (monthlyBudget === null) {
