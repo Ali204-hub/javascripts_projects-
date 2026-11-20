@@ -435,8 +435,18 @@ function renderMonthlyInsights() {
         monthComparisonLabel = "No previous-month spending to compare";
     }
 
+    const spendingDays = new Set(
+        monthExpenses.map(transaction => getTransactionDate(transaction))
+    ).size;
+    const averageDailyExpense = spendingDays > 0
+        ? total / spendingDays
+        : 0;
+    const activeSpendingDaysLabel = spendingDays > 0
+        ? `Active spending days: ${spendingDays}, average ${formatRupees(averageDailyExpense)} per active day`
+        : "No active spending days yet";
+
     monthlyInsightMessage.textContent = monthExpenses.length
-        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}.`
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}.`
         : "Add an expense to start tracking this month's spending.";
 
     if (monthlyBudget === null) {
