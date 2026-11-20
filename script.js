@@ -410,8 +410,33 @@ function renderMonthlyInsights() {
         ? `Largest: ${largestExpense.title} — ${formatRupees(largestExpense.amount)}`
         : "Largest: No expenses yet";
 
+    const previousMonth = new Date();
+    previousMonth.setDate(1);
+    previousMonth.setMonth(previousMonth.getMonth() - 1);
+    const previousMonthKey = formatLocalDate(previousMonth).slice(0, 7);
+    const previousMonthTotal = transactions
+        .filter(transaction =>
+            transaction.type === "expense"
+            && getTransactionDate(transaction).slice(0, 7) === previousMonthKey
+        )
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+    let monthComparisonLabel = "No previous-month data";
+    if (previousMonthTotal > 0 && total > 0) {
+        const changePercent = ((total - previousMonthTotal) / previousMonthTotal) * 100;
+        monthComparisonLabel = changePercent === 0
+            ? "Same as last month"
+            : changePercent > 0
+                ? `Up ${changePercent.toFixed(1)}% vs last month`
+                : `Down ${Math.abs(changePercent).toFixed(1)}% vs last month`;
+    } else if (previousMonthTotal > 0 && total === 0) {
+        monthComparisonLabel = "Down 100% vs last month";
+    } else if (previousMonthTotal === 0 && total > 0) {
+        monthComparisonLabel = "No previous-month spending to compare";
+    }
+
     monthlyInsightMessage.textContent = monthExpenses.length
-        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}.`
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}.`
         : "Add an expense to start tracking this month's spending.";
 
     if (monthlyBudget === null) {
