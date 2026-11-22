@@ -455,9 +455,21 @@ function renderMonthlyInsights() {
         ? `Expense-free days: ${expenseFreeDays} of ${daysInCurrentMonth}`
         : `Expense-free days: ${daysInCurrentMonth} of ${daysInCurrentMonth}`;
 
+    const currentMonthIncome = transactions
+        .filter(transaction =>
+            transaction.type === "income"
+            && getTransactionDate(transaction).slice(0, 7) === currentMonth
+        )
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+    const incomeCoverageLabel = total > 0
+        ? `Income covers ${((currentMonthIncome / total) * 100).toFixed(1)}% of expenses`
+        : "Income coverage: no expenses to cover";
+
     monthlyInsightMessage.textContent = monthExpenses.length
-        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}. ${expenseFreeDaysLabel}.`
-        : "Add an expense to start tracking this month's spending.";
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}. ${expenseFreeDaysLabel}. ${incomeCoverageLabel}.`
+        : currentMonthIncome > 0
+            ? `No expenses this month yet. Current income: ${formatRupees(currentMonthIncome)}. ${incomeCoverageLabel}.`
+            : "Add an expense to start tracking this month's spending.";
 
     if (monthlyBudget === null) {
         monthlyBudgetProgress.value = 0;
