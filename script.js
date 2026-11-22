@@ -445,8 +445,18 @@ function renderMonthlyInsights() {
         ? `Active spending days: ${spendingDays}, average ${formatRupees(averageDailyExpense)} per active day`
         : "No active spending days yet";
 
+    const daysInCurrentMonth = new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() + 1,
+        0
+    ).getDate();
+    const expenseFreeDays = daysInCurrentMonth - spendingDays;
+    const expenseFreeDaysLabel = spendingDays > 0
+        ? `Expense-free days: ${expenseFreeDays} of ${daysInCurrentMonth}`
+        : `Expense-free days: ${daysInCurrentMonth} of ${daysInCurrentMonth}`;
+
     monthlyInsightMessage.textContent = monthExpenses.length
-        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}.`
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}. ${expenseFreeDaysLabel}.`
         : "Add an expense to start tracking this month's spending.";
 
     if (monthlyBudget === null) {
