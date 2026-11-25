@@ -465,6 +465,13 @@ function renderMonthlyInsights() {
         ? `Income covers ${((currentMonthIncome / total) * 100).toFixed(1)}% of expenses`
         : "Income coverage: no expenses to cover";
 
+    const savingsRate = currentMonthIncome > 0
+        ? ((currentMonthIncome - total) / currentMonthIncome) * 100
+        : 0;
+    const savingsRateLabel = currentMonthIncome > 0
+        ? `Savings rate: ${savingsRate.toFixed(1)}%`
+        : "Savings rate: no income recorded";
+
     monthlyInsightMessage.textContent = monthExpenses.length
         ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}. ${expenseFreeDaysLabel}. ${incomeCoverageLabel}.`
         : currentMonthIncome > 0
