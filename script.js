@@ -473,7 +473,7 @@ function renderMonthlyInsights() {
         : "Savings rate: no income recorded";
 
     monthlyInsightMessage.textContent = monthExpenses.length
-        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}. ${expenseFreeDaysLabel}. ${incomeCoverageLabel}.`
+        ? `You recorded ${monthExpenses.length} expense transaction(s) this month. Average: ${formatRupees(averageMonthlyExpense)} per expense. ${largestExpenseLabel}. ${monthComparisonLabel}. ${activeSpendingDaysLabel}. ${expenseFreeDaysLabel}. ${incomeCoverageLabel}. ${savingsRateLabel}.`
         : currentMonthIncome > 0
             ? `No expenses this month yet. Current income: ${formatRupees(currentMonthIncome)}. ${incomeCoverageLabel}.`
             : "Add an expense to start tracking this month's spending.";
